@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>文で覚える漢字 — Kanji in Sentences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #08080a;
+    --ink: #eef0f2;
+    --ink-soft: #83858f;
+    --green: #00e28a;
+    --green-soft: rgba(0,226,138,0.09);
+    --purple: #9d6bff;
+    --purple-soft: rgba(157,107,255,0.12);
+    --border: rgba(255,255,255,0.12);
+    --card: rgba(20,20,24,0.65);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(rgba(0,226,138,0.10) 1px, transparent 1px),
+      radial-gradient(rgba(157,107,255,0.08) 1px, transparent 1px);
+    background-size: 28px 28px, 28px 28px;
+    background-position: 0 0, 14px 14px;
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 20px 14px 28px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wrap { width: 100%; max-width: 480px; }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .progress {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+  .progress b { color: var(--green); }
+
+  button.reshuffle {
+    width: 40px;
+    height: 40px;
+    font-family: inherit;
+    font-size: 17px;
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .12s ease, background .12s ease, color .12s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    button.reshuffle:hover { background: var(--green); color: #04140d; }
+  }
+  button.reshuffle:active { background: var(--green); color: #04140d; transform: scale(0.92); }
+  button.reshuffle:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+  .card {
+    background: var(--card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 20px 22px;
+    position: relative;
+    overflow: hidden;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    touch-action: pan-y;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--purple));
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .tag {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+  }
+
+  .jp-text {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(22px, 6.5vw, 28px);
+    line-height: 1.6;
+    font-weight: 700;
+    color: var(--ink);
+    flex: 1;
+  }
+
+  .reveal-zone {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reading-text {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(15px, 4.2vw, 18px);
+    color: var(--green);
+    line-height: 1.5;
+  }
+
+  .translation {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    width: 100%;
+  }
+  .tr-ru {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .tr-uz {
+    font-size: 12.5px;
+    color: var(--purple);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .stamp-btn {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    border-radius: 999px;
+    padding: 11px 20px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .12s ease, background .12s ease, color .12s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .stamp-btn:hover { background: var(--green); color: #04140d; }
+  }
+  .stamp-btn:active { background: var(--green); color: #04140d; transform: scale(0.95); }
+  .stamp-btn:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+  .stamp-btn.alt { color: var(--purple); border-color: var(--purple); }
+  @media (hover: hover) and (pointer: fine) {
+    .stamp-btn.alt:hover { background: var(--purple); color: #0c0714; }
+  }
+  .stamp-btn.alt:active { background: var(--purple); color: #0c0714; }
+
+  .nav-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .nav-btn {
+    flex: 1;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(255,255,255,0.03);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    min-height: 44px;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-btn:hover { border-color: var(--green); }
+  }
+  .nav-btn:active { transform: scale(0.97); border-color: var(--green); }
+  .nav-btn:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+  .hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card { animation: fadein .25s ease-out; }
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top-row">
+      <div class="progress"><b id="curNum">1</b> / <span id="totalNum">106</span></div>
+      <button class="reshuffle" id="reshuffleBtn" aria-label="Перемешать">↻</button>
+    </div>
+
+    <div class="card" id="card">
+      <div class="tags" id="tagsRow"></div>
+      <div class="jp-text" id="jpText"></div>
+      <div class="reveal-zone" id="revealZone"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn">← Пред.</button>
+      <button class="nav-btn" id="nextBtn">Следующее →</button>
+    </div>
+
+    <div class="hint">Basic Kanji Book Vol.1 · 106 предложений · свайп или кнопки для навигации</div>
+  </div>
+
+<script>
+const SENTENCES = [
+  {jp:"今日は日曜日です。",reading:"きょうはにちようびです。",ru:"Сегодня воскресенье.",uz:"Bugun yakshanba.",tags:["日","曜"]},
+  {jp:"来週の月曜日に学校へ行きます。",reading:"らいしゅうのげつようびにがっこうへいきます。",ru:"В следующий понедельник я пойду в школу.",uz:"Kelasi hafta dushanba kuni maktabga boraman.",tags:["来","週","月","学","行"]},
+  {jp:"木曜日に友達と会います。",reading:"もくようびにともだちとあいます。",ru:"В четверг я встречаюсь с другом.",uz:"Payshanba kuni do‘stim bilan uchrashaman.",tags:["木"]},
+  {jp:"富士山はとても高いです。",reading:"ふじさんはとてもたかいです。",ru:"Гора Фудзи очень высокая.",uz:"Fuji tog‘i juda baland.",tags:["山","高"]},
+  {jp:"小川の水はきれいです。",reading:"おがわのみずはきれいです。",ru:"Вода в ручье чистая.",uz:"Soyning suvi toza.",tags:["川","水"]},
+  {jp:"田んぼで米を作ります。",reading:"たんぼでこめをつくります。",ru:"На рисовом поле выращивают рис.",uz:"Sholipoyada guruch yetishtiriladi.",tags:["田","米"]},
+  {jp:"一人で映画を見ます。",reading:"ひとりでえいがをみます。",ru:"Я смотрю фильм один.",uz:"Men kinoni yolg‘iz ko‘raman.",tags:["一","人","見"]},
+  {jp:"出口はあちらです。",reading:"でぐちはあちらです。",ru:"Выход там.",uz:"Chiqish joyi u yerda.",tags:["口"]},
+  {jp:"自動車で行きます。",reading:"じどうしゃでいきます。",ru:"Я поеду на машине.",uz:"Mashinada boraman.",tags:["車","行"]},
+  {jp:"専門は日本語です。",reading:"せんもんはにほんごです。",ru:"Моя специальность — японский язык.",uz:"Mening mutaxassisligim yapon tili.",tags:["門","日","本"]},
+  {jp:"花火はきれいです。",reading:"はなびはきれいです。",ru:"Фейерверк красивый.",uz:"Salyut chiroyli.",tags:["火"]},
+  {jp:"水曜日に買い物します。",reading:"すいようびにかいものします。",ru:"В среду я делаю покупки.",uz:"Chorshanba kuni xarid qilaman.",tags:["水","買"]},
+  {jp:"お金がありません。",reading:"おかねがありません。",ru:"У меня нет денег.",uz:"Mening pulim yo‘q.",tags:["金"]},
+  {jp:"土曜日は休みです。",reading:"どようびはやすみです。",ru:"Суббота — выходной.",uz:"Shanba kuni dam olish kuni.",tags:["土","休"]},
+  {jp:"女の子が本を読んでいます。",reading:"おんなのこがほんをよんでいます。",ru:"Девочка читает книгу.",uz:"Qiz kitob o‘qiyapti.",tags:["女","本","読"]},
+  {jp:"学校で勉強します。",reading:"がっこうでべんきょうします。",ru:"Я учусь в школе.",uz:"Maktabda o‘qiyman.",tags:["学"]},
+  {jp:"先生は親切です。",reading:"せんせいはしんせつです。",ru:"Учитель добрый.",uz:"O‘qituvchi mehribon.",tags:["先","生"]},
+  {jp:"私は日本語を勉強しています。",reading:"わたしはにほんごをべんきょうしています。",ru:"Я изучаю японский язык.",uz:"Men yapon tilini o‘rganyapman.",tags:["私","日","本"]},
+  {jp:"一番好きな食べ物は何ですか。",reading:"いちばんすきなたべものはなんですか。",ru:"Какая твоя самая любимая еда?",uz:"Eng yoqtirgan taomingiz nima?",tags:["一","好","食","何"]},
+  {jp:"教室に十人います。",reading:"きょうしつにじゅうにんいます。",ru:"В классе десять человек.",uz:"Sinfda o‘n kishi bor.",tags:["教","十","人"]},
+  {jp:"百円のノートを買いました。",reading:"ひゃくえんのノートをかいました。",ru:"Я купил тетрадь за сто иен.",uz:"Yuz iyenalik daftar sotib oldim.",tags:["百","円","買"]},
+  {jp:"千円札を見せてください。",reading:"せんえんさつをみせてください。",ru:"Покажите, пожалуйста, купюру в тысячу иен.",uz:"Iltimos, ming iyenalik pulni ko‘rsating.",tags:["千","見"]},
+  {jp:"来年、大学生になります。",reading:"らいねん、だいがくせいになります。",ru:"В следующем году я стану студентом университета.",uz:"Kelasi yil universitet talabasi bo‘laman.",tags:["来","年","大","学","生"]},
+  {jp:"今年は忙しいです。",reading:"ことしはいそがしいです。",ru:"Этот год напряжённый.",uz:"Bu yil band.",tags:["年"]},
+  {jp:"電車は上に行きます。",reading:"でんしゃはうえにいきます。",ru:"Поезд едет наверх.",uz:"Poyezd yuqoriga boradi.",tags:["上","行"]},
+  {jp:"地下に本屋があります。",reading:"ちかにほんやがあります。",ru:"Внизу (под землёй) есть книжный магазин.",uz:"Yer ostida kitob do‘koni bor.",tags:["下","本"]},
+  {jp:"中学校の先生です。",reading:"ちゅうがっこうのせんせいです。",ru:"Я учитель средней школы.",uz:"Men o‘rta maktab o‘qituvchisiman.",tags:["中","学","先","生"]},
+  {jp:"大人になりました。",reading:"おとなになりました。",ru:"Я стал взрослым.",uz:"Men kattalar bo‘ldim.",tags:["大"]},
+  {jp:"小鳥が鳴いています。",reading:"ことりがないています。",ru:"Птичка поёт.",uz:"Qushcha sayrayapti.",tags:["小","鳥"]},
+  {jp:"日本へ行ったことがありますか。",reading:"にほんへいったことがありますか。",ru:"Вы бывали в Японии?",uz:"Yaponiyaga borganmisiz?",tags:["日","本","行"]},
+  {jp:"半分だけ食べました。",reading:"はんぶんだけたべました。",ru:"Я съел только половину.",uz:"Faqat yarmini yedim.",tags:["半","分","食"]},
+  {jp:"自分で作りました。",reading:"じぶんでつくりました。",ru:"Я сделал это сам.",uz:"Buni o‘zim qildim.",tags:["分"]},
+  {jp:"体力がありません。",reading:"たいりょくがありません。",ru:"У меня нет физических сил.",uz:"Jismoniy kuchim yo‘q.",tags:["体","力"]},
+  {jp:"幾何学は難しいです。",reading:"きかがくはむずかしいです。",ru:"Геометрия сложная.",uz:"Geometriya qiyin.",tags:["何","学"]},
+  {jp:"説明してください。",reading:"せつめいしてください。",ru:"Объясните, пожалуйста.",uz:"Tushuntirib bering.",tags:["明"]},
+  {jp:"今日は休みです。",reading:"きょうはやすみです。",ru:"Сегодня выходной.",uz:"Bugun dam olish kuni.",tags:["休"]},
+  {jp:"毎日、体育があります。",reading:"まいにち、たいいくがあります。",ru:"Каждый день есть физкультура.",uz:"Har kuni jismoniy tarbiya bor.",tags:["体"]},
+  {jp:"すしが好きです。",reading:"すしがすきです。",ru:"Мне нравятся суши.",uz:"Men sushini yoqtiraman.",tags:["好"]},
+  {jp:"男女平等です。",reading:"だんじょびょうどうです。",ru:"Равенство мужчин и женщин.",uz:"Erkak va ayol tengligi.",tags:["男","女"]},
+  {jp:"林業をしています。",reading:"りんぎょうをしています。",ru:"Я занимаюсь лесным хозяйством.",uz:"O‘rmon xo‘jaligi bilan shug‘ullanaman.",tags:["林"]},
+  {jp:"森林を守りましょう。",reading:"しんりんをまもりましょう。",ru:"Давайте беречь лес.",uz:"Keling, o‘rmonni asraylik.",tags:["森"]},
+  {jp:"時間がありません。",reading:"じかんがありません。",ru:"У меня нет времени.",uz:"Vaqtim yo‘q.",tags:["間"]},
+  {jp:"畑で野菜を作ります。",reading:"はたけでやさいをつくります。",ru:"На огороде выращивают овощи.",uz:"Bog‘da sabzavot yetishtiriladi.",tags:["畑"]},
+  {jp:"岩石を集めています。",reading:"がんせきをあつめています。",ru:"Я собираю горные породы.",uz:"Tog‘ jinslarini yig‘yapman.",tags:["岩"]},
+  {jp:"目的は何ですか。",reading:"もくてきはなんですか。",ru:"Какова цель?",uz:"Maqsad nima?",tags:["目","何"]},
+  {jp:"耳鼻科へ行きました。",reading:"じびかへいきました。",ru:"Я сходил к ЛОРу.",uz:"LOR bo‘limiga bordim.",tags:["耳","行"]},
+  {jp:"歌手になりたいです。",reading:"かしゅになりたいです。",ru:"Я хочу стать певцом.",uz:"Qo‘shiqchi bo‘lishni xohlayman.",tags:["手"]},
+  {jp:"靴を一足買いました。",reading:"くつをいっそくかいました。",ru:"Я купил пару обуви.",uz:"Bir juft poyabzal sotib oldim.",tags:["足","買"]},
+  {jp:"明日は雨です。",reading:"あしたはあめです。",ru:"Завтра дождь.",uz:"Ertaga yomg‘ir yog‘adi.",tags:["明","雨"]},
+  {jp:"竹林を歩きました。",reading:"ちくりんをあるきました。",ru:"Я гулял в бамбуковой роще.",uz:"Bambukzorda yurdim.",tags:["竹"]},
+  {jp:"米国から来ました。",reading:"べいこくからきました。",ru:"Я приехал из США.",uz:"AQSHdan keldim.",tags:["米","来"]},
+  {jp:"貝殻を拾いました。",reading:"かいがらをひろいました。",ru:"Я подобрал ракушку.",uz:"Chig‘anoq qobig‘ini terib oldim.",tags:["貝"]},
+  {jp:"石油は高いです。",reading:"せきゆはたかいです。",ru:"Нефть дорогая.",uz:"Neft qimmat.",tags:["石","高"]},
+  {jp:"毛糸でセーターを作ります。",reading:"けいとでセーターをつくります。",ru:"Из шерстяной нити вяжут свитер.",uz:"Jun ipdan sviter to‘qiladi.",tags:["糸"]},
+  {jp:"花瓶に花を入れます。",reading:"かびんにはなをいれます。",ru:"Я ставлю цветы в вазу.",uz:"Vazaga gul qo‘yaman.",tags:["花"]},
+  {jp:"紅茶を飲みます。",reading:"こうちゃをのみます。",ru:"Я пью чёрный чай.",uz:"Qora choy ichaman.",tags:["茶","飲"]},
+  {jp:"牛肉が好きです。",reading:"ぎゅうにくがすきです。",ru:"Мне нравится говядина.",uz:"Mol go‘shtini yoqtiraman.",tags:["牛","肉","好"]},
+  {jp:"文学を勉強しています。",reading:"ぶんがくをべんきょうしています。",ru:"Я изучаю литературу.",uz:"Adabiyotni o‘rganyapman.",tags:["文"]},
+  {jp:"漢字を書きます。",reading:"かんじをかきます。",ru:"Я пишу кандзи.",uz:"Kanji yozaman.",tags:["字","書"]},
+  {jp:"食べ物がたくさんあります。",reading:"たべものがたくさんあります。",ru:"Еды много.",uz:"Ovqat ko‘p.",tags:["物","食"]},
+  {jp:"牛乳を飲みます。",reading:"ぎゅうにゅうをのみます。",ru:"Я пью молоко.",uz:"Sut ichaman.",tags:["牛","飲"]},
+  {jp:"馬力が強いです。",reading:"ばりきがつよいです。",ru:"Лошадиная сила высокая (мощный).",uz:"Ot kuchi katta.",tags:["馬"]},
+  {jp:"白鳥が湖にいます。",reading:"はくちょうがみずうみにいます。",ru:"На озере лебеди.",uz:"Ko‘lda oqqushlar bor.",tags:["鳥"]},
+  {jp:"魚肉を食べます。",reading:"ぎょにくをたべます。",ru:"Я ем рыбное мясо.",uz:"Baliq go‘shtini yeyman.",tags:["魚","食"]},
+  {jp:"新聞を読みます。",reading:"しんぶんをよみます。",ru:"Я читаю газету.",uz:"Gazeta o‘qiyman.",tags:["新","聞","読"]},
+  {jp:"中古車を買いました。",reading:"ちゅうこしゃをかいました。",ru:"Я купил подержанную машину.",uz:"Ishlatilgan mashina sotib oldim.",tags:["古","車","買"]},
+  {jp:"学長に会いました。",reading:"がくちょうにあいました。",ru:"Я встретился с ректором.",uz:"Rektor bilan uchrashdim.",tags:["学","長"]},
+  {jp:"短大に通っています。",reading:"たんだいにかよっています。",ru:"Я учусь в колледже.",uz:"Kollejga qatnayman.",tags:["短","大"]},
+  {jp:"高校へ行きます。",reading:"こうこうへいきます。",ru:"Я иду в старшую школу.",uz:"Yuqori sinf maktabiga boraman.",tags:["高","行"]},
+  {jp:"高速道路を走ります。",reading:"こうそくどうろをはしります。",ru:"Я еду по скоростной трассе.",uz:"Tezyurar yo‘lda haydayman.",tags:["高"]},
+  {jp:"高橋さんに会いました。",reading:"たかはしさんにあいました。",ru:"Я встретил (господина/госпожу) Такахаси.",uz:"Takahasi bilan uchrashdim.",tags:["高"]},
+  {jp:"安全第一です。",reading:"あんぜんだいいちです。",ru:"Безопасность прежде всего.",uz:"Xavfsizlik birinchi o‘rinda.",tags:["安","一"]},
+  {jp:"低い声で話します。",reading:"ひくいこえではなします。",ru:"Я говорю низким голосом.",uz:"Past ovozda gapiraman.",tags:["低","話"]},
+  {jp:"暗記が苦手です。",reading:"あんきがにがてです。",ru:"Мне трудно даётся заучивание наизусть.",uz:"Yodlash mening kuchsiz tomonim.",tags:["暗"]},
+  {jp:"多分、雨が降ります。",reading:"たぶん、あめがふります。",ru:"Вероятно, пойдёт дождь.",uz:"Ehtimol, yomg‘ir yog‘adi.",tags:["多","雨"]},
+  {jp:"少し休みましょう。",reading:"すこしやすみましょう。",ru:"Давайте немного отдохнём.",uz:"Biroz dam olaylik.",tags:["少","休"]},
+  {jp:"旅行に行きます。",reading:"りょこうにいきます。",ru:"Я еду путешествовать.",uz:"Sayohatga boraman.",tags:["行"]},
+  {jp:"来週、日本に来ます。",reading:"らいしゅう、にほんにきます。",ru:"На следующей неделе я приеду в Японию.",uz:"Kelasi hafta Yaponiyaga kelaman.",tags:["来","週","日","本"]},
+  {jp:"国へ帰ります。",reading:"くにへかえります。",ru:"Я возвращаюсь на родину.",uz:"Vatanimga qaytaman.",tags:["帰"]},
+  {jp:"食事をしましょう。",reading:"しょくじをしましょう。",ru:"Давайте поедим.",uz:"Ovqatlanaylik.",tags:["食"]},
+  {jp:"飲み物は何にしますか。",reading:"のみものはなんにしますか。",ru:"Что будете пить?",uz:"Nima ichasiz?",tags:["飲","何"]},
+  {jp:"工場を見学しました。",reading:"こうじょうをけんがくしました。",ru:"Я посетил завод (с экскурсией).",uz:"Zavodni ekskursiya bilan ko‘rdim.",tags:["見"]},
+  {jp:"ラジオが聞こえます。",reading:"ラジオがきこえます。",ru:"Радио слышно.",uz:"Radio eshitilyapti.",tags:["聞"]},
+  {jp:"本を読みます。",reading:"ほんをよみます。",ru:"Я читаю книгу.",uz:"Kitob o‘qiyman.",tags:["本","読"]},
+  {jp:"手紙を書きます。",reading:"てがみをかきます。",ru:"Я пишу письмо.",uz:"Xat yozaman.",tags:["手","書"]},
+  {jp:"電話で話します。",reading:"でんわではなします。",ru:"Я говорю по телефону.",uz:"Telefonda gaplashaman.",tags:["話"]},
+  {jp:"買い物に行きます。",reading:"かいものにいきます。",ru:"Я иду за покупками.",uz:"Xarid qilishga boraman.",tags:["買","行"]},
+  {jp:"教室で勉強します。",reading:"きょうしつでべんきょうします。",ru:"Я учусь в классе.",uz:"Sinfxonada o‘qiyman.",tags:["教"]},
+  {jp:"朝食を食べます。",reading:"ちょうしょくをたべます。",ru:"Я ем завтрак.",uz:"Nonushta qilaman.",tags:["朝","食"]},
+  {jp:"昼休みに寝ます。",reading:"ひるやすみにねます。",ru:"Во время обеденного перерыва я сплю.",uz:"Tushlik tanaffusida uxlayman.",tags:["昼","休"]},
+  {jp:"今夜、映画を見ます。",reading:"こんや、えいがをみます。",ru:"Сегодня вечером я смотрю фильм.",uz:"Bugun kechqurun kino ko‘raman.",tags:["夜","見"]},
+  {jp:"あの方は先生です。",reading:"あのかたはせんせいです。",ru:"Тот человек — учитель.",uz:"O‘sha kishi o‘qituvchi.",tags:["方","先","生"]},
+  {jp:"名前は何ですか。",reading:"なまえはなんですか。",ru:"Как вас зовут?",uz:"Ismingiz nima?",tags:["前","何"]},
+  {jp:"午後に帰ります。",reading:"ごごにかえります。",ru:"Я вернусь после полудня.",uz:"Tushdan keyin qaytaman.",tags:["後","帰"]},
+  {jp:"今週は忙しいです。",reading:"こんしゅうはいそがしいです。",ru:"Эта неделя занятая.",uz:"Bu hafta band.",tags:["週"]},
+  {jp:"日曜日は休みです。",reading:"にちようびはやすみです。",ru:"Воскресенье — выходной.",uz:"Yakshanba dam olish kuni.",tags:["日","曜","休"]},
+  {jp:"女の子と男の子がいます。",reading:"おんなのことおとこのこがいます。",ru:"Есть девочка и мальчик.",uz:"Qiz bola va o‘g‘il bola bor.",tags:["子","女","男"]},
+  {jp:"二月に日本へ行きます。",reading:"にがつににほんへいきます。",ru:"В феврале я поеду в Японию.",uz:"Fevral oyida Yaponiyaga boraman.",tags:["二","日","本","行"]},
+  {jp:"三人で勉強します。",reading:"さんにんでべんきょうします。",ru:"Мы втроём учимся.",uz:"Uchovlon o‘qiymiz.",tags:["三","人"]},
+  {jp:"四月に学校が始まります。",reading:"しがつにがっこうがはじまります。",ru:"В апреле начинается школа.",uz:"Aprel oyida maktab boshlanadi.",tags:["四","月","学"]},
+  {jp:"五時に帰ります。",reading:"ごじにかえります。",ru:"Я вернусь в пять часов.",uz:"Soat beshda qaytaman.",tags:["五","帰"]},
+  {jp:"六月は雨が多いです。",reading:"ろくがつはあめがおおいです。",ru:"В июне много дождей.",uz:"Iyun oyida yomg‘ir ko‘p.",tags:["六","雨","多"]},
+  {jp:"七月は暑いです。",reading:"しちがつはあついです。",ru:"В июле жарко.",uz:"Iyul oyida issiq.",tags:["七"]},
+  {jp:"八時に学校へ行きます。",reading:"はちじにがっこうへいきます。",ru:"В восемь часов я иду в школу.",uz:"Soat sakkizda maktabga boraman.",tags:["八","学","行"]},
+  {jp:"九月に大学が始まります。",reading:"くがつにだいがくがはじまります。",ru:"В сентябре начинается университет.",uz:"Sentyabr oyida universitet boshlanadi.",tags:["九","大","学"]},
+  {jp:"一万円を持っています。",reading:"いちまんえんをもっています。",ru:"У меня есть десять тысяч иен.",uz:"Mendan o‘n ming iyena bor.",tags:["万","一","円"]}
+];
+
+let order = [];
+let idx = 0;
+let stage = 0; // 0: hidden, 1: reading shown, 2: translation shown
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function init() {
+  order = shuffle([...Array(SENTENCES.length).keys()]);
+  idx = 0;
+  stage = 0;
+  document.getElementById('totalNum').textContent = SENTENCES.length;
+  render();
+}
+
+function render() {
+  const s = SENTENCES[order[idx]];
+  document.getElementById('curNum').textContent = idx + 1;
+  document.getElementById('tagsRow').innerHTML = s.tags.map(t => '<span class="tag">' + t + '</span>').join('');
+  document.getElementById('jpText').textContent = s.jp;
+
+  const zone = document.getElementById('revealZone');
+  if (stage === 0) {
+    zone.innerHTML = '<button class="stamp-btn" id="showReading">Показать чтение</button>';
+    document.getElementById('showReading').addEventListener('click', () => { stage = 1; render(); });
+  } else if (stage === 1) {
+    zone.innerHTML =
+      '<div class="reading-text">' + s.reading + '</div>' +
+      '<button class="stamp-btn alt" id="showTrans">Показать перевод</button>';
+    document.getElementById('showTrans').addEventListener('click', () => { stage = 2; render(); });
+  } else {
+    zone.innerHTML =
+      '<div class="reading-text">' + s.reading + '</div>' +
+      '<div class="translation"><div class="tr-ru">' + s.ru + '</div>' +
+      '<div class="tr-uz">' + s.uz + '</div></div>';
+  }
+}
+
+function next() {
+  idx = (idx + 1) % order.length;
+  stage = 0;
+  render();
+}
+
+function prev() {
+  idx = (idx - 1 + order.length) % order.length;
+  stage = 0;
+  render();
+}
+
+document.getElementById('nextBtn').addEventListener('click', next);
+document.getElementById('prevBtn').addEventListener('click', prev);
+document.getElementById('reshuffleBtn').addEventListener('click', init);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === ' ') { e.preventDefault(); if (stage < 2) { stage++; render(); } else { next(); } }
+});
+
+// swipe support for touch
+let touchStartX = null;
+const cardEl = document.getElementById('card');
+cardEl.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+cardEl.addEventListener('touchend', (e) => {
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) {
+    if (dx < 0) next(); else prev();
+  }
+  touchStartX = null;
+}, { passive: true });
+
+init();
+</script>
+</body>
+</html>
