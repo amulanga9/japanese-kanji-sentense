@@ -7,7 +7,7 @@ body{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-
 .count{font-variant-numeric:tabular-nums}.hint{opacity:.8}.scene{position:relative;flex:1;min-height:0;perspective:1400px;overflow:hidden;touch-action:pan-y}
 .card{position:relative;width:100%;height:100%;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:pan-y;transform-style:preserve-3d;--drag-x:0px;--drag-r:0deg;--flip:0;transform:translate3d(var(--drag-x),0,0) rotateZ(var(--drag-r)) rotateY(calc(var(--flip) * 180deg));transition:transform .58s cubic-bezier(.2,.72,.2,1);will-change:transform}
 .card.flipped{--flip:1}
-.card.dragging{transition:none}
+.card.dragging{transition:none}.card::after{content:"";position:absolute;inset:-18%;pointer-events:none;border-radius:50%;opacity:0;background:radial-gradient(ellipse at var(--wave-x,50%) 50%,rgba(255,255,255,.09) 0,rgba(255,255,255,.045) 10%,rgba(255,255,255,0) 32%),repeating-radial-gradient(ellipse at var(--wave-x,50%) 50%,rgba(255,255,255,.055) 0 1px,transparent 1px 18px);transform:scaleX(1.02);transition:opacity .12s ease}.card.dragging::after{opacity:1;animation:swipeWave .65s ease-out infinite}@keyframes swipeWave{0%{transform:scaleX(.82);filter:blur(0)}55%{transform:scaleX(1.08);filter:blur(.4px)}100%{transform:scaleX(1.22);filter:blur(1px)}}
 .card.slide-out{transition:transform .24s cubic-bezier(.55,.06,.68,.19)}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid #242424;border-radius:22px;background:#080808;overflow:hidden}
 .front{display:flex;align-items:center;justify-content:center;padding:28px}.frontWord{font-size:clamp(54px,11vw,128px);font-weight:450;letter-spacing:.015em;line-height:1.05;text-align:center}
@@ -66,16 +66,17 @@ function next(){go(1)}
 function prev(){go(-1)}
 function go(dir){
   if(isAnimating)return;
+  if(navigator.vibrate) navigator.vibrate(9);
   isAnimating=true; flipped=false;
   cardEl.classList.remove('dragging'); cardEl.classList.add('slide-out');
   const distance=(window.innerWidth||600)*1.08;
-  cardEl.style.setProperty('--drag-x',(dir>0?-distance:distance)+'px');
+  cardEl.style.setProperty('--drag-x',(dir>0?-distance:distance)+'px'); cardEl.style.setProperty('--wave-x',dir>0?'15%':'85%');
   cardEl.style.setProperty('--drag-r',(dir>0?'-2deg':'2deg'));
   window.setTimeout(()=>{
     idx=(idx+dir+cards.length)%cards.length;
     render(dir>0?distance:-distance);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      cardEl.style.setProperty('--drag-x','0px'); cardEl.style.setProperty('--drag-r','0deg');
+      cardEl.style.setProperty('--drag-x','0px'); cardEl.style.setProperty('--drag-r','0deg'); cardEl.style.setProperty('--wave-x','50%');
     }));
     window.setTimeout(()=>{isAnimating=false},260);
   },240);
@@ -90,14 +91,15 @@ cardEl.addEventListener('pointermove',e=>{
   if(!pointerActive||isAnimating)return;
   const dx=e.clientX-touchX,dy=e.clientY-touchY;
   if(!isDragging){
-    if(Math.abs(dx)<10 && Math.abs(dy)<10)return;
-    if(Math.abs(dx)<=Math.abs(dy)*1.15)return;
+    if(Math.abs(dx)<5 && Math.abs(dy)<5)return;
+    if(Math.abs(dx)<=Math.abs(dy)*1.45)return;
     isDragging=true; cardEl.classList.add('dragging');
   }
   e.preventDefault();
-  const damp=dx/(1+Math.abs(dx)/420);
+  const damp=dx*0.94;
   cardEl.style.setProperty('--drag-x',damp+'px');
-  cardEl.style.setProperty('--drag-r',(damp/260)+'deg');
+  cardEl.style.setProperty('--drag-r',(damp/320)+'deg');
+  cardEl.style.setProperty('--wave-x',(50 + Math.max(-45,Math.min(45,dx/(window.innerWidth||600)*100)))+'%');
 });
 function endPointer(e){
   if(!pointerActive)return; pointerActive=false;
@@ -105,14 +107,14 @@ function endPointer(e){
   cardEl.releasePointerCapture?.(e.pointerId);
   if(isDragging){
     cardEl.classList.remove('dragging');
-    if(Math.abs(dx)>65 && Math.abs(dx)>Math.abs(dy)*1.15) go(dx<0?1:-1);
-    else {cardEl.style.setProperty('--drag-x','0px');cardEl.style.setProperty('--drag-r','0deg');}
+    if(Math.abs(dx)>28 && Math.abs(dx)>Math.abs(dy)*1.25) go(dx<0?1:-1);
+    else {cardEl.style.setProperty('--drag-x','0px');cardEl.style.setProperty('--drag-r','0deg'); cardEl.style.setProperty('--wave-x','50%');}
     isDragging=false; return;
   }
   flip();
 }
 cardEl.addEventListener('pointerup',endPointer);
-cardEl.addEventListener('pointercancel',()=>{pointerActive=false;isDragging=false;cardEl.classList.remove('dragging');cardEl.style.setProperty('--drag-x','0px');cardEl.style.setProperty('--drag-r','0deg')});
+cardEl.addEventListener('pointercancel',()=>{pointerActive=false;isDragging=false;cardEl.classList.remove('dragging');cardEl.style.setProperty('--drag-x','0px');cardEl.style.setProperty('--drag-r','0deg');cardEl.style.setProperty('--wave-x','50%')});
 cardEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}});
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();next()}else if(e.key==='ArrowLeft'){e.preventDefault();prev()}else if(e.key===' '){e.preventDefault();flip()}});
 render();</script></body></html>
